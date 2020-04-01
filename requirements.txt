@@ -1,0 +1,13 @@
+certifi==2019.11.28
+chardet==3.0.4
+dnspython==1.16.0
+elasticsearch==7.6.0
+elasticsearch-dsl==7.1.0
+idna==2.9
+mysql-connector-python==8.0.19
+pkg-resources==0.0.0
+protobuf==3.6.1
+python-dateutil==2.8.1
+requests==2.23.0
+six==1.14.0
+urllib3==1.25.8
