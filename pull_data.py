@@ -5,6 +5,7 @@ from elasticsearch_dsl import Document, Date, Float, Integer, Keyword, Text, Geo
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
+from datetime import datetime
 
 PUT_PATH = 'reapbenefit_locations/_doc/'
 
@@ -35,6 +36,7 @@ class Entity(Document):
 
 
 try:
+    print("Logged at: ", datetime.now())
     connection = mysql.connector.connect(host='devlp.solveninja.org',
                                          database='theapp',
                                          password='S0lvesm@lld3ntbig',
@@ -51,7 +53,7 @@ try:
     cursor = connection.cursor()
     cursor.execute(sql_select_query)
     area_records = cursor.fetchall()
-    print("Total number of rows in Laptop is: ", cursor.rowcount)
+    print("Total number of rows in public_data_place_org_table is: ", cursor.rowcount)
     areas_hash = {}
     for row in area_records:
         areas_hash[row[0]] = row
@@ -61,7 +63,7 @@ try:
     cursor = connection.cursor()
     cursor.execute(sql_select_query)
     menu_records = cursor.fetchall()
-    print("Total number of rows in Laptop is: ", cursor.rowcount)
+    print("Total number of rows in nd_menuList is: ", cursor.rowcount)
     menu_hash = {}
     for row in menu_records:
         menu_hash[row[1]] = row 
@@ -81,8 +83,12 @@ try:
     connections.create_connection(hosts=['localhost'], timeout=20)
     Entity.init()
     id = 0
+    n = 0
     for row in entity_records:
-        print(row)
+        n = n + 1
+        if n % 1000 == 0:
+            print ("Done: ", n)
+        # print(row)
         e = Entity()
         e.id = row[0]
         e.meta.id = row[0]
@@ -93,13 +99,13 @@ try:
             e.cityName = areas_hash[e.cityId][3]
         if row[7] and row[7] in menu_hash:
             if menu_hash[row[7]][4]:
-                e.icon = './assets/Icons/'+menu_hash[row[7]][4]
+                e.icon = menu_hash[row[7]][4]
 
-        if row[3]:
+        if row[3] and row[3] > -90.0 and row[3] < 90.0:
             e.lat = row[3]
         else:
             e.lat = float(0)
-        if row[4]:
+        if row[4] and row[4] > -90.0 and row[4] < 90.0:
             e.lng = row[4]
         else:
             e.lng = float(0)
@@ -112,23 +118,9 @@ try:
         e.wardId = row[8]
         if row[8] and row[8] in areas_hash:
             e.wardName = areas_hash[row[8]][3]
-        e.mprint()
+        # e.mprint()
         e.save()
-
-    results = Entity.search().filter(
-            'geo_bounding_box', 
-            rb_pin={
-                "top_left": {
-                    "lat": 12.98,
-                    "lon": 77.50
-                    },
-                "bottom_right": {
-                    "lat": 12.95,
-                    "lon": 77.75
-                    }
-                }).execute()
-    for e in results:
-        e.mprint()
+    print("Finished at: ", datetime.now())
 
 except Error as e:
     print("Error connecting to ES", e)
