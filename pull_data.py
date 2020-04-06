@@ -7,7 +7,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from datetime import datetime
 
-PUT_PATH = 'reapbenefit_locations/_doc/'
+PUT_PATH = 'rb_locations/_doc/'
 
 class Entity(Document):
     id = Integer()
