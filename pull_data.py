@@ -64,10 +64,22 @@ try:
     cursor.execute(sql_select_query)
     menu_records = cursor.fetchall()
     print("Total number of rows in nd_menuList is: ", cursor.rowcount)
-    menu_hash = {}
-    for row in menu_records:
-        menu_hash[row[1]] = row 
 
+    menu_id_hash = {}
+    for row in menu_records:
+        menu_id_hash[row[0]] = row
+    menu_name_hash = {}
+    for row in menu_records:
+        subcategory = row[1]
+        parent_id = row[2]
+        category = subcategory
+        # For top level categories the parent category is empty, we probably
+        # do not need to save it as the entities should all have only 
+        # subcategories but save it anyway
+        if parent_id:
+            parent_category_row = menu_id_hash[parent_id]
+            category = parent_category_row[1]
+        menu_name_hash[(category, subcategory)] = row 
 
 except Error as e:
     print("Error reading data from MySQL table", e)
@@ -97,9 +109,13 @@ try:
         e.cityId = row[10]
         if e.cityId and e.cityId in areas_hash:
             e.cityName = areas_hash[e.cityId][3]
-        if row[7] and row[7] in menu_hash:
-            if menu_hash[row[7]][4]:
-                e.icon = menu_hash[row[7]][4]
+        category = row[6]
+        subcategory = row[7]
+        if category and subcategory and (category, subcategory) in menu_name_hash:
+            subcategory_row = menu_name_hash[(category, subcategory)]
+            if subcategory_row[4]:
+                e.icon = subcategory_row[4]
+            e.menuId = subcategory_row[0]
 
         if row[3] and row[3] > -90.0 and row[3] < 90.0:
             e.lat = row[3]
@@ -113,8 +129,6 @@ try:
 
         e.total = 1
         e.type = "12"
-        if row[7] and row[7] in menu_hash:
-            e.menuId = menu_hash[row[7]][0]
         e.wardId = row[8]
         if row[8] and row[8] in areas_hash:
             e.wardName = areas_hash[row[8]][3]
